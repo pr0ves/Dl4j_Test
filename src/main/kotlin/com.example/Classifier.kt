@@ -35,7 +35,7 @@ import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
 
 
-val log = LoggerFactory.getLogger("Main")!!
+
 val imagePath = File(System.getProperty("user.dir"), "animals/")
 val height = 100
 val width = 100
@@ -51,8 +51,10 @@ val nCores = 8
 var channels = 3
 
 fun main(args: Array<String>) {
+    val log = LoggerFactory.getLogger("Main")!!
     log.info("Loading data...")
     getExamples()
+    log.info("Done")
 
     val labelMaker = ParentPathLabelGenerator()
     val fileSplit = FileSplit(File(imagePath, "test/"), NativeImageLoader.ALLOWED_FORMATS, rng)
@@ -137,7 +139,6 @@ fun getExamples() {
             }
         }
     }
-    log.info("Done")
 }
 
 fun convInit(name: String, `in`: Int, out: Int, kernel: IntArray, stride: IntArray, pad: IntArray, bias: Double): ConvolutionLayer {
