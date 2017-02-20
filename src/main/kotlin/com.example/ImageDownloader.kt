@@ -21,16 +21,16 @@ fun main(args: Array<String>) {
     )
     wnids.forEach {
         var counter = 0
-        val path = File(System.getProperty("user.dir"), "animals/${it.key}")
+        val path = File(System.getProperty("user.dir"), "aimals/${it.key}")
         if (!path.exists()) {
-            path.mkdir()
+            path.mkdirs()
         }
         val mutex = Semaphore(4)
 
         val url = URL("http://www.image-net.org/api/text/imagenet.synset.geturls?wnid=${it.value}")
         url.openStream().bufferedReader().forEachLine { s ->
-            mutex.acquire()
             val downloadImage = Runnable {
+                mutex.acquire()
                 val future = Executors.newSingleThreadExecutor().submit {
                     try {
                         val imageurl = URL(s)
@@ -40,24 +40,21 @@ fun main(args: Array<String>) {
                             val file = File(path, "${it.key}-$counter.$format")
                             if (!file.exists()) {
                                 file.createNewFile()
-                                println("Downloading $s to ${file.name}\tQueue:${mutex.queueLength}")
+                                println("Downloading $s to ${file.name}\tQueue:${mutex.queueLength}\tPermits:${mutex.availablePermits()}")
                                 ImageIO.write(image, format, file)
                             } else {
-                                println("file already exist\tQueue:${mutex.queueLength}")
+                                println("file already exist\tQueue:${mutex.queueLength}\tPermits:${mutex.availablePermits()}")
                             }
                             counter++
                         } else {
-                            println("not downloading $s\tQueue:${mutex.queueLength}")
+                            println("not downloading $s\tQueue:${mutex.queueLength}\tPermits:${mutex.availablePermits()}")
                         }
                     } catch (e: MalformedURLException) {
                         println("${e.message} $s")
-                        mutex.release()
                     } catch (e: NullPointerException) {
                         println("${e.message} $s")
-                        mutex.release()
                     } catch (e: IIOException) {
                         println("${e.message} $s")
-                        mutex.release()
                     }
                 }
 
@@ -68,7 +65,6 @@ fun main(args: Array<String>) {
                     if (!future.isCancelled) {
                         future.cancel(true)
                     }
-                    mutex.release()
                 }
                 mutex.release()
             }
